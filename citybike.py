@@ -35,11 +35,27 @@ def clustering_coefficient(graph):
     C = nx.average_clustering(graph)
     print("Average clustering coefficient: {}".format(C))
 
+def most_popular_routes(graph, n=3):
+    '''
+    Function for finding n routes that are most often used.
+    @param n number of routes to find
+    '''
+    # initialize list where popular routes (edges) are saved
+    popular_routes = [""] * n
+    # calculate the popular routes (edges with most duplicates).
+    # TODO: graph implementation needs to be fixed
+    # show the results
+    print(str(n) + " most popular routes:")
+    for i in range(len(popular_routes)):
+      print("  " + str(i + 1) + ". " + popular_routes[i])
+
+
 def main():
     G = load_network()
     centrality(G)
     nodes_and_edges(G)
     clustering_coefficient(G)
+    most_popular_routes(G, 5)
 
 if __name__ == '__main__':
     main()
