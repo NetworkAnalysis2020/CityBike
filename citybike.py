@@ -7,13 +7,29 @@ import matplotlib.pyplot as plt
 from operator import itemgetter
 import glob
 
-#Imports data and concatenates csv:s into one dataframe
-df = pd.concat([pd.read_csv(f) for f in glob.glob("./data/*.csv")], ignore_index = True)
 
-#Transforms dataframe into a directed graph
-def load_network():
-    G = nx.from_pandas_edgelist(df, source='Departure station name', target='Return station name', edge_attr=['Covered distance (m)','Duration (sec.)'], create_using=nx.DiGraph())
-    return G
+def import_data():
+    #Imports data and concatenates csv:s into one dataframe
+    df = pd.concat([pd.read_csv(f) for f in glob.glob("./data/*.csv")], ignore_index = True)
+    #Transforms timestamps into datetime format
+    df.Departure = pd.to_datetime(df.Departure)
+    df.Return = pd.to_datetime(df.Return)
+
+    return df
+
+def create_network(df):
+    #Transforms dataframe into a directed graph that accepts multiple parallel edges
+    M = nx.from_pandas_edgelist(df, source='Departure station name', target='Return station name', edge_attr=['Covered distance (m)','Duration (sec.)'], create_using=nx.MultiDiGraph())
+
+    #Creates a simple graph where edge weight expresses the number of parallel edges in multigraph
+    G = nx.Graph()
+    for u,v in M.edges():
+        if G.has_edge(u,v):
+            G[u][v]['weight'] += 1
+        else:
+            G.add_edge(u, v, weight=1)
+
+    return M, G
 
 def nodes_and_edges(graph):
     print("Number of Nodes: {}, Number of Edges: {}".format(graph.number_of_nodes(), graph.number_of_edges()))
@@ -30,8 +46,6 @@ def centrality(graph):
     print("Node with greatest closeness centrality: {}, Closeness centrality value: {}".format(s[0][0], s[0][1]))
 
 def clustering_coefficient(graph):
-    #Removes self loops from graph
-    graph.remove_edges_from(nx.selfloop_edges(graph))
     C = nx.average_clustering(graph)
     print("Average clustering coefficient: {}".format(C))
 
@@ -40,24 +54,22 @@ def most_popular_routes(graph, n=3):
     Function for finding n routes that are most often used.
     @param n number of routes to find
     '''
-    # initialize list where popular routes (edges) are saved
-    popular_routes = [""] * n
-    # calculate the popular routes (edges with most duplicates).
-    # TODO: graph implementation needs to be fixed
-    # show the results
+    #Use the weights of the simple graph to create a sorted tuple with station names and number of trips
+    popular_routes = sorted(graph.edges(data=True),key=lambda x: x[2]['weight'],reverse=True)
+
+    #Show the results
     print(str(n) + " most popular routes:")
-    for i in range(len(popular_routes)):
-      print("  " + str(i + 1) + ". " + popular_routes[i])
+    for i in range(n):
+      print("Stations: {} - {}, Number of trips: {}".format(popular_routes[i][0], popular_routes[i][1], popular_routes[i][2]['weight']))
 
 
 def main():
-    G = load_network()
-    centrality(G)
-    nodes_and_edges(G)
+    df = import_data()
+    M, G = create_network(df)
+    centrality(M)
+    nodes_and_edges(M)
     clustering_coefficient(G)
     most_popular_routes(G, 5)
 
 if __name__ == '__main__':
     main()
-
-
