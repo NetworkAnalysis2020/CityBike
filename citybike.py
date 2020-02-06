@@ -20,6 +20,18 @@ def import_data():
 
     return df
 
+def split_data(df):
+    #Dataframe is reversed to chronological order
+    df = df.iloc[::-1]
+    #Date-column is created and set as index
+    df['Date'] = df['Departure'].dt.date
+    df = df.set_index("Date")
+    #Two dataframes are created, one including only weekdays and other only weekends (saturday-sunday)
+    wd = pd.date_range("2019-04-01", "2019-08-31", freq="b")
+    weekdays=df.loc[wd,:]
+    weekend = df.drop(wd.date)
+
+    return weekdays, weekend
 
 def create_network(df):
     # Transforms dataframe into a directed graph that accepts multiple parallel edges
@@ -76,15 +88,35 @@ def most_popular_routes(graph, n=3):
         print("Stations: {} - {}, Number of trips: {}".format(
             popular_routes[i][0], popular_routes[i][1], popular_routes[i][2]['weight']))
 
+def plot_days(weekday, weekend):
+    #The number of trips per hour is plotted separately for weekends and for weekdays
+    plt.figure()
+    plt.subplot(211)
+    weekday.groupby(weekday['Departure'].rename('Hours').dt.hour).size().plot()
+    plt.title('Weekdays')
+
+    plt.subplot(212)
+    weekend.groupby(weekend['Departure'].rename('Hours').dt.hour).size().plot()
+    plt.title('Weekends')
+
+    plt.show()
 
 def main():
     df = import_data()
+    wd, wnd = split_data(df)
+    plot_days(wd, wnd)    
     M, G = create_network(df)
+    WM, WG = create_network(wd)
+    WNM, WNG = create_network(wnd)
     centrality(M)
     nodes_and_edges(M)
     clustering_coefficient(G)
     most_popular_routes(G, 5)
+    most_popular_routes(WG, 5)
+    most_popular_routes(WNG, 5)
     detect_communities(G)
+    detect_communities(WG)
+    detect_communities(WNG)
 
 
 if __name__ == '__main__':
