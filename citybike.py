@@ -2,6 +2,7 @@
 
 # Import necessary modules
 import pandas as pd
+import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 from operator import itemgetter
@@ -101,9 +102,46 @@ def plot_days(weekday, weekend):
 
     plt.show()
 
+def count_averages(df, wd, wnd):
+    avg_time = (df["Duration (sec.)"].mean(axis=0))/60 
+    avg_distance = df["Covered distance (m)"].mean(axis=0) 
+
+    avg_time_wd = (wd["Duration (sec.)"].mean(axis=0))/60 
+    avg_distance_wd = wd["Covered distance (m)"].mean(axis=0) 
+
+    avg_time_wnd = (wnd["Duration (sec.)"].mean(axis=0))/60 
+    avg_distance_wnd = wnd["Covered distance (m)"].mean(axis=0)
+
+    print("Average trip duration: {:0.2f} min, Average trip length: {:0.2f} m".format(
+        avg_time, avg_distance))
+    print("Average trip duration during weekdays: {:0.2f} min, Average trip length during weekdays: {:0.2f} m".format(
+        avg_time_wd, avg_distance_wd))
+    print("Average trip duration during weekends: {:0.2f} min, Average trip length during weekdays: {:0.2f} m".format(
+        avg_time_wnd, avg_distance_wnd))
+
+    labels = ('Total', 'Weekdays', 'Weekend')
+    y_pos = np.arange(len(labels))
+    time_values = (avg_time, avg_time_wd, avg_time_wnd)
+    distance_values = (avg_distance, avg_distance_wd, avg_distance_wnd)
+
+    plt.subplot(121)
+    plt.title('Average trip duration')
+    plt.bar(y_pos, time_values, align='center', alpha=0.5)
+    plt.xticks(y_pos, labels)
+    plt.ylabel('Minutes')
+
+    plt.subplot(122)
+    plt.title('Average trip length')
+    plt.bar(y_pos, distance_values, align='center', alpha=0.5)
+    plt.xticks(y_pos, labels)
+    plt.ylabel('Meters')
+
+    plt.show()
+
 def main():
     df = import_data()
     wd, wnd = split_data(df)
+    count_averages(df, wd, wnd)
     plot_days(wd, wnd)    
     M, G = create_network(df)
     WM, WG = create_network(wd)
@@ -117,7 +155,6 @@ def main():
     detect_communities(G)
     detect_communities(WG)
     detect_communities(WNG)
-
 
 if __name__ == '__main__':
     main()
