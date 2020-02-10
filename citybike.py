@@ -60,8 +60,16 @@ def nodes_and_edges(graph):
     print("Number of Nodes: {}, Number of Edges: {}".format(
         graph.number_of_nodes(), graph.number_of_edges()))
 
+    print("Number of Nodes: {}, Number of Edges: {}".format(
+        graph.number_of_nodes(), graph.number_of_edges()))
 
 def centrality(graph):
+    # Average degree
+    degrees = graph.degree()
+    sum_of_edges = sum([pair[1] for pair in degrees])
+    avg_degree = sum_of_edges / graph.number_of_nodes()
+    print("Average degree of the graph: {}".format(int(round(avg_degree))))
+
     # Degree centrality
     nodes_degrees = nx.degree_centrality(graph)
     max_centrality = max(nodes_degrees, key=nodes_degrees.get)
@@ -191,21 +199,17 @@ def count_averages(df, wd, wnd):
 def main():
     df = import_data()
     wd, wnd = split_data(df)
-    
     count_averages(df, wd, wnd)
     plot_days(wd, wnd)    
-    
     M, G = create_network(df)
     WM, WG = create_network(wd)
     WNM, WNG = create_network(wnd)
-    
     centrality(M)
     nodes_and_edges(M)
     clustering_coefficient(G)
     most_popular_routes(G, 5)
     most_popular_routes(WG, 5)
     most_popular_routes(WNG, 5)
-    
     detect_communities(G)
     detect_communities(WG)
     detect_communities(WNG)
