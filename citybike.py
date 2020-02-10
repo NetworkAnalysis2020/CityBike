@@ -9,15 +9,21 @@ from operator import itemgetter
 import glob
 from communities import detect_communities
 
+stations = {}
+
 def import_data():
+    global stations
     # Imports data and concatenates csv:s into one dataframe
     df = pd.concat([pd.read_csv(f)
                     for f in glob.glob("./data/*.csv")], ignore_index=True)
     # Transforms timestamps into datetime format
     df.Departure = pd.to_datetime(df.Departure)
     df.Return = pd.to_datetime(df.Return)
-    # drop rows without all values
+    # Drop rows without all values
     df.dropna()
+    #df['Departure station id'] = df['Departure station id'].astype(float)
+    # Creates a dict with the station id:s as keys and station names as values
+    #stations = dict(zip(df['Departure station id'], df['Departure station name']))
 
     return df
 
@@ -89,6 +95,7 @@ def most_popular_routes(graph, n=3):
         print("Stations: {} - {}, Number of trips: {}".format(
             popular_routes[i][0], popular_routes[i][1], popular_routes[i][2]['weight']))
 
+
 def plot_days(weekday, weekend):
     #The number of trips per hour is plotted separately for weekends and for weekdays
     plt.figure()
@@ -97,7 +104,7 @@ def plot_days(weekday, weekend):
     plt.title('Weekdays')
 
     plt.subplot(212)
-    weekend.groupby(weekend['Departure'].rename('Hours').dt.hour).size().plot()
+    weekend.groupby(weekend['Departure'].rename('Hours').dt.hour).size().plot(color='r')
     plt.title('Weekends')
 
     plt.show()
@@ -124,34 +131,81 @@ def count_averages(df, wd, wnd):
     time_values = (avg_time, avg_time_wd, avg_time_wnd)
     distance_values = (avg_distance, avg_distance_wd, avg_distance_wnd)
 
-    plt.subplot(121)
+    # Creates barplots for average trip duration and trip length
+    plt.subplot(421)
     plt.title('Average trip duration')
     plt.bar(y_pos, time_values, align='center', alpha=0.5)
     plt.xticks(y_pos, labels)
+    for index,data in enumerate(time_values):
+        plt.text(x=index, y=data-3, s=f"{data:0.2f}", fontdict=dict(fontsize=8))
     plt.ylabel('Minutes')
 
-    plt.subplot(122)
+    plt.subplot(422)
     plt.title('Average trip length')
     plt.bar(y_pos, distance_values, align='center', alpha=0.5)
     plt.xticks(y_pos, labels)
+    for index,data in enumerate(distance_values):
+        plt.text(x=index, y=data-400, s=f"{data:0.2f}", fontdict=dict(fontsize=8))
     plt.ylabel('Meters')
 
+    #Plots hourly average trip duration and trip length for the whole data, weekdays and weekends
+    plt.subplot(423)
+    plt.title('Average trip distance by hour')
+    df.groupby(df['Departure'].dt.hour)['Covered distance (m)'].mean().plot(color='r')
+    plt.ylabel('Meters')
+    plt.xlabel('Hour')
+
+    plt.subplot(424)
+    plt.title('Average trip duration by hour')
+    df.groupby(df['Departure'].dt.hour)['Duration (sec.)'].mean().div(60).plot(color='r')
+    plt.ylabel('Minutes')
+    plt.xlabel('Hour')
+
+    plt.subplot(425)
+    plt.title('Average trip distance by hour on weekdays')
+    wd.groupby(wd['Departure'].dt.hour)['Covered distance (m)'].mean().plot(color='y')
+    plt.ylabel('Meters')
+    plt.xlabel('Hour')
+
+    plt.subplot(426)
+    plt.title('Average trip duration by hour on weekdays')
+    wd.groupby(wd['Departure'].dt.hour)['Duration (sec.)'].mean().div(60).plot(color='y')
+    plt.ylabel('Minutes')
+    plt.xlabel('Hour')
+
+    plt.subplot(427)
+    plt.title('Average trip distance by hour on weekends')
+    wnd.groupby(wnd['Departure'].dt.hour)['Covered distance (m)'].mean().plot(color='g')
+    plt.ylabel('Meters')
+    plt.xlabel('Hour')
+
+    plt.subplot(428)
+    wnd.groupby(wnd['Departure'].dt.hour)['Duration (sec.)'].mean().div(60).plot(color='g')
+    plt.title('Average trip duration by hour on weekends')
+    plt.ylabel('Minutes')
+    plt.xlabel('Hour')
+
+    plt.tight_layout()
     plt.show()
 
 def main():
     df = import_data()
     wd, wnd = split_data(df)
+    
     count_averages(df, wd, wnd)
     plot_days(wd, wnd)    
+    
     M, G = create_network(df)
     WM, WG = create_network(wd)
     WNM, WNG = create_network(wnd)
+    
     centrality(M)
     nodes_and_edges(M)
     clustering_coefficient(G)
     most_popular_routes(G, 5)
     most_popular_routes(WG, 5)
     most_popular_routes(WNG, 5)
+    
     detect_communities(G)
     detect_communities(WG)
     detect_communities(WNG)
