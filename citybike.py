@@ -7,7 +7,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from operator import itemgetter
 import glob
-from communities import detect_communities
+from communities import detect_communities, draw_stations_to_map
 
 stations = {}
 
@@ -213,6 +213,7 @@ def main():
     detect_communities(G)
     detect_communities(WG)
     detect_communities(WNG)
+    draw_stations_to_map(G)
 
 if __name__ == '__main__':
     main()
