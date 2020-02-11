@@ -32,7 +32,7 @@ def _validate_graph(graph):
     return new_graph
 
 
-def what_is_the_bounding_box(df):
+def __what_is_the_bounding_box(df):
     '''
     Print the bounding box for dataset.
     '''
@@ -50,7 +50,7 @@ def draw_stations_to_map(graph):
     # print dataframe head
     print(df.head())
     # get min and max longitude latitude values
-    bbox = what_is_the_bounding_box(df)
+    bbox = __what_is_the_bounding_box(df)
     print("Longitude min, Longitude max, Latitude min, Latitude max")
     print(bbox)
     # load map picture
@@ -64,6 +64,48 @@ def draw_stations_to_map(graph):
     ax.imshow(eh_map, zorder=0, extent=bbox, aspect='auto')
     # draw stations to image
     ax.scatter(df.x, df.y, zorder=1, c='r', s=30)
+    # show image
+    plt.show()
+
+
+def __draw_communities_to_map(graph, values):
+    '''
+    Function for drawing communities to map.
+    '''
+    # read spatial data from file
+    df = pd.read_csv("./data/bikestations.csv")
+    # print dataframe head
+    print(df.head())
+    # get min and max longitude latitude values
+    bbox = __what_is_the_bounding_box(df)
+    # load map picture
+    eh_map = plt.imread("./data/EspooHelsinki.PNG")
+    # create figure with proper scale and background
+    plt.figure()
+    ax = plt.gca()
+    ax.set_title('Bike station communities')
+    ax.set_xlim(bbox[0], bbox[1])
+    ax.set_ylim(bbox[2], bbox[3])
+    ax.imshow(eh_map, zorder=0, extent=bbox, aspect='auto')
+    # draw stations to image
+    x_axis = []
+    y_axis = []
+    colors = []
+    colorlist = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
+    index = 0
+    for station in graph:
+        row = df.loc[df['Nimi'] == station]
+        if row.empty:
+            print("could not find station " + station + " from bikestations.csv")
+            x_axis.append(-1)
+            y_axis.append(-1)
+            colors.append('w')
+        else:
+            x_axis.append(row.iloc[0]["x"])
+            y_axis.append(row.iloc[0]["y"])
+            colors.append(colorlist[values[index]])
+        index += 1
+    ax.scatter(x_axis, y_axis, zorder=1, c=colors, s=40)
     # show image
     plt.show()
 
@@ -87,3 +129,6 @@ def detect_communities(graph):
     nx.draw_networkx(G, pos=layout, cmap=plt.get_cmap("jet"),
                      node_color=values, node_size=35, with_labels=False)
     plt.show()
+
+    # draw the detected community structure to map
+    __draw_communities_to_map(G, values)
