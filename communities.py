@@ -68,6 +68,44 @@ def draw_stations_to_map(graph):
     plt.show()
 
 
+def draw_stations_and_edges_to_map(graph):
+    '''
+    Function for drawing stations and edges between them to map.
+    '''
+    # read spatial data from file
+    df = pd.read_csv("./data/bikestations.csv")
+    # get min and max longitude latitude values
+    bbox = __what_is_the_bounding_box(df)
+    # load map picture
+    eh_map = plt.imread("./data/EspooHelsinki.PNG")
+    # create figure with proper scale and background
+    plt.figure()
+    ax = plt.gca()
+    ax.set_title('Bike station network')
+    ax.set_xlim(bbox[0], bbox[1])
+    ax.set_ylim(bbox[2], bbox[3])
+    ax.imshow(eh_map, zorder=0, extent=bbox, aspect='auto')
+    # draw edges between stations
+    for edge in graph.edges:
+        start = edge[0]
+        end = edge[1]
+        row_start = df.loc[df['Nimi'] == start]
+        row_end = df.loc[df['Nimi'] == end]
+        if row_start.empty or row_end.empty:
+            # did not found stations --> skip
+            print("Could not find row for one of the two stations: " + str(start) + ", " + str(end))
+            continue
+        x1 = row_start.iloc[0]["x"]
+        x2 = row_end.iloc[0]["x"]
+        y1 = row_start.iloc[0]["y"]
+        y2 = row_end.iloc[0]["y"]
+        ax.plot([x1, x2], [y1, y2], 'k-', zorder=1, alpha=0.1)
+        # draw stations to image
+    ax.scatter(df.x, df.y, zorder=2, c='r', s=30)
+    # show image
+    plt.show()
+
+
 def __draw_communities_to_map(graph, values):
     '''
     Function for drawing communities to map.
@@ -96,7 +134,8 @@ def __draw_communities_to_map(graph, values):
     for station in graph:
         row = df.loc[df['Nimi'] == station]
         if row.empty:
-            print("could not find station " + station + " from bikestations.csv")
+            print("could not find station " +
+                  station + " from bikestations.csv")
             x_axis.append(-1)
             y_axis.append(-1)
             colors.append('w')

@@ -7,9 +7,10 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from operator import itemgetter
 import glob
-from communities import detect_communities, draw_stations_to_map
+from communities import detect_communities, draw_stations_to_map, draw_stations_and_edges_to_map
 
 stations = {}
+
 
 def import_data():
     global stations
@@ -27,18 +28,20 @@ def import_data():
 
     return df
 
+
 def split_data(df):
-    #Dataframe is reversed to chronological order
+    # Dataframe is reversed to chronological order
     df = df.iloc[::-1]
-    #Date-column is created and set as index
+    # Date-column is created and set as index
     df['Date'] = df['Departure'].dt.date
     df = df.set_index("Date")
-    #Two dataframes are created, one including only weekdays and other only weekends (saturday-sunday)
+    # Two dataframes are created, one including only weekdays and other only weekends (saturday-sunday)
     wd = pd.date_range("2019-04-01", "2019-08-31", freq="b")
-    weekdays=df.loc[wd,:]
+    weekdays = df.loc[wd, :]
     weekend = df.drop(wd.date)
 
     return weekdays, weekend
+
 
 def create_network(df):
     # Transforms dataframe into a directed graph that accepts multiple parallel edges
@@ -62,6 +65,7 @@ def nodes_and_edges(graph):
 
     print("Number of Nodes: {}, Number of Edges: {}".format(
         graph.number_of_nodes(), graph.number_of_edges()))
+
 
 def centrality(graph):
     # Average degree
@@ -105,26 +109,28 @@ def most_popular_routes(graph, n=3):
 
 
 def plot_days(weekday, weekend):
-    #The number of trips per hour is plotted separately for weekends and for weekdays
+    # The number of trips per hour is plotted separately for weekends and for weekdays
     plt.figure()
     plt.subplot(211)
     weekday.groupby(weekday['Departure'].rename('Hours').dt.hour).size().plot()
     plt.title('Weekdays')
 
     plt.subplot(212)
-    weekend.groupby(weekend['Departure'].rename('Hours').dt.hour).size().plot(color='r')
+    weekend.groupby(weekend['Departure'].rename(
+        'Hours').dt.hour).size().plot(color='r')
     plt.title('Weekends')
 
     plt.show()
 
+
 def count_averages(df, wd, wnd):
-    avg_time = (df["Duration (sec.)"].mean(axis=0))/60 
-    avg_distance = df["Covered distance (m)"].mean(axis=0) 
+    avg_time = (df["Duration (sec.)"].mean(axis=0))/60
+    avg_distance = df["Covered distance (m)"].mean(axis=0)
 
-    avg_time_wd = (wd["Duration (sec.)"].mean(axis=0))/60 
-    avg_distance_wd = wd["Covered distance (m)"].mean(axis=0) 
+    avg_time_wd = (wd["Duration (sec.)"].mean(axis=0))/60
+    avg_distance_wd = wd["Covered distance (m)"].mean(axis=0)
 
-    avg_time_wnd = (wnd["Duration (sec.)"].mean(axis=0))/60 
+    avg_time_wnd = (wnd["Duration (sec.)"].mean(axis=0))/60
     avg_distance_wnd = wnd["Covered distance (m)"].mean(axis=0)
 
     print("Average trip duration: {:0.2f} min, Average trip length: {:0.2f} m".format(
@@ -144,51 +150,59 @@ def count_averages(df, wd, wnd):
     plt.title('Average trip duration')
     plt.bar(y_pos, time_values, align='center', alpha=0.5)
     plt.xticks(y_pos, labels)
-    for index,data in enumerate(time_values):
-        plt.text(x=index, y=data-3, s=f"{data:0.2f}", fontdict=dict(fontsize=8))
+    for index, data in enumerate(time_values):
+        plt.text(x=index, y=data-3,
+                 s=f"{data:0.2f}", fontdict=dict(fontsize=8))
     plt.ylabel('Minutes')
 
     plt.subplot(422)
     plt.title('Average trip length')
     plt.bar(y_pos, distance_values, align='center', alpha=0.5)
     plt.xticks(y_pos, labels)
-    for index,data in enumerate(distance_values):
-        plt.text(x=index, y=data-400, s=f"{data:0.2f}", fontdict=dict(fontsize=8))
+    for index, data in enumerate(distance_values):
+        plt.text(x=index, y=data-400,
+                 s=f"{data:0.2f}", fontdict=dict(fontsize=8))
     plt.ylabel('Meters')
 
-    #Plots hourly average trip duration and trip length for the whole data, weekdays and weekends
+    # Plots hourly average trip duration and trip length for the whole data, weekdays and weekends
     plt.subplot(423)
     plt.title('Average trip distance by hour')
-    df.groupby(df['Departure'].dt.hour)['Covered distance (m)'].mean().plot(color='r')
+    df.groupby(df['Departure'].dt.hour)[
+        'Covered distance (m)'].mean().plot(color='r')
     plt.ylabel('Meters')
     plt.xlabel('Hour')
 
     plt.subplot(424)
     plt.title('Average trip duration by hour')
-    df.groupby(df['Departure'].dt.hour)['Duration (sec.)'].mean().div(60).plot(color='r')
+    df.groupby(df['Departure'].dt.hour)[
+        'Duration (sec.)'].mean().div(60).plot(color='r')
     plt.ylabel('Minutes')
     plt.xlabel('Hour')
 
     plt.subplot(425)
     plt.title('Average trip distance by hour on weekdays')
-    wd.groupby(wd['Departure'].dt.hour)['Covered distance (m)'].mean().plot(color='y')
+    wd.groupby(wd['Departure'].dt.hour)[
+        'Covered distance (m)'].mean().plot(color='y')
     plt.ylabel('Meters')
     plt.xlabel('Hour')
 
     plt.subplot(426)
     plt.title('Average trip duration by hour on weekdays')
-    wd.groupby(wd['Departure'].dt.hour)['Duration (sec.)'].mean().div(60).plot(color='y')
+    wd.groupby(wd['Departure'].dt.hour)[
+        'Duration (sec.)'].mean().div(60).plot(color='y')
     plt.ylabel('Minutes')
     plt.xlabel('Hour')
 
     plt.subplot(427)
     plt.title('Average trip distance by hour on weekends')
-    wnd.groupby(wnd['Departure'].dt.hour)['Covered distance (m)'].mean().plot(color='g')
+    wnd.groupby(wnd['Departure'].dt.hour)[
+        'Covered distance (m)'].mean().plot(color='g')
     plt.ylabel('Meters')
     plt.xlabel('Hour')
 
     plt.subplot(428)
-    wnd.groupby(wnd['Departure'].dt.hour)['Duration (sec.)'].mean().div(60).plot(color='g')
+    wnd.groupby(wnd['Departure'].dt.hour)[
+        'Duration (sec.)'].mean().div(60).plot(color='g')
     plt.title('Average trip duration by hour on weekends')
     plt.ylabel('Minutes')
     plt.xlabel('Hour')
@@ -196,11 +210,12 @@ def count_averages(df, wd, wnd):
     plt.tight_layout()
     plt.show()
 
+
 def main():
     df = import_data()
     wd, wnd = split_data(df)
     count_averages(df, wd, wnd)
-    plot_days(wd, wnd)    
+    plot_days(wd, wnd)
     M, G = create_network(df)
     WM, WG = create_network(wd)
     WNM, WNG = create_network(wnd)
@@ -214,6 +229,8 @@ def main():
     detect_communities(WG)
     detect_communities(WNG)
     draw_stations_to_map(G)
+    #draw_stations_and_edges_to_map(G) # takes a while
+
 
 if __name__ == '__main__':
     main()
