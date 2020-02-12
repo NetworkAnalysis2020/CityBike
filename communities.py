@@ -106,6 +106,45 @@ def draw_stations_and_edges_to_map(graph):
     plt.show()
 
 
+def draw_popular_routes_to_map(routes):
+    '''
+    Function for drawing the most popular routes to map.
+    @param graph
+    '''
+    # read spatial data from file
+    df = pd.read_csv("./data/bikestations.csv")
+    # get min and max longitude latitude values
+    bbox = __what_is_the_bounding_box(df)
+    # load map picture
+    eh_map = plt.imread("./data/EspooHelsinki.PNG")
+    # create figure with proper scale and background
+    plt.figure()
+    ax = plt.gca()
+    ax.set_title('Bike station network')
+    ax.set_xlim(bbox[0], bbox[1])
+    ax.set_ylim(bbox[2], bbox[3])
+    ax.imshow(eh_map, zorder=0, extent=bbox, aspect='auto')
+    # draw popular routes and stations
+    for route in routes:
+        start = route[0]
+        end = route[1]
+        row_start = df.loc[df['Nimi'] == start]
+        row_end = df.loc[df['Nimi'] == end]
+        if row_start.empty or row_end.empty:
+            # did not found stations --> skip
+            print("Could not find row for one of the two stations: " + str(start) + ", " + str(end))
+            continue
+        x1 = row_start.iloc[0]["x"]
+        x2 = row_end.iloc[0]["x"]
+        y1 = row_start.iloc[0]["y"]
+        y2 = row_end.iloc[0]["y"]
+        ax.plot([x1, x2], [y1, y2], 'b-', zorder=1, linewidth=7)
+        # draw stations to image
+        ax.scatter([x1, x2], [y1, y2], zorder=2, c='r', s=30)
+    # show image
+    plt.show()        
+
+
 def __draw_communities_to_map(graph, values):
     '''
     Function for drawing communities to map.

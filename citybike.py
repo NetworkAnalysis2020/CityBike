@@ -7,7 +7,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from operator import itemgetter
 import glob
-from communities import detect_communities, draw_stations_to_map, draw_stations_and_edges_to_map
+from communities import detect_communities, draw_stations_to_map, draw_stations_and_edges_to_map, draw_popular_routes_to_map
 
 stations = {}
 
@@ -106,6 +106,9 @@ def most_popular_routes(graph, n=3):
     for i in range(n):
         print("Stations: {} - {}, Number of trips: {}".format(
             popular_routes[i][0], popular_routes[i][1], popular_routes[i][2]['weight']))
+    
+    # return the n most popular routes
+    return popular_routes[:n]
 
 
 def plot_days(weekday, weekend):
@@ -222,7 +225,8 @@ def main():
     centrality(M)
     nodes_and_edges(M)
     clustering_coefficient(G)
-    most_popular_routes(G, 5)
+    popular_routes = most_popular_routes(G, 5)
+    draw_popular_routes_to_map(popular_routes)
     most_popular_routes(WG, 5)
     most_popular_routes(WNG, 5)
     detect_communities(G)
