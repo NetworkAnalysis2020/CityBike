@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from operator import itemgetter
 import glob
 from communities import detect_communities, draw_stations_to_map, draw_stations_and_edges_to_map, draw_popular_routes_to_map
+from predictions import predict_destination
 
 stations = {}
 
@@ -217,6 +218,10 @@ def count_averages(df, wd, wnd):
 def main():
     df = import_data()
     wd, wnd = split_data(df)
+    predict_destination(df, 'All days')
+    predict_destination(wd, 'Weekdays')
+    predict_destination(wnd, 'Weekends')
+
     count_averages(df, wd, wnd)
     plot_days(wd, wnd)
     M, G = create_network(df)
@@ -234,7 +239,6 @@ def main():
     detect_communities(WNG)
     draw_stations_to_map(G)
     #draw_stations_and_edges_to_map(G) # takes a while
-
 
 if __name__ == '__main__':
     main()
