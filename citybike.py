@@ -101,6 +101,7 @@ def centrality(graph):
     x = range(len(d))
     plt.plot(x, y)
     plt.ylabel('Degree centrality')
+
     plt.show()
 
 
@@ -129,17 +130,23 @@ def most_popular_routes(graph, n=3):
 
 
 def plot_days(weekday, weekend):
-    # The number of trips per hour is plotted separately for weekends and for weekdays
+    # Counts the number of unique days in each dataframe 
+    wd = len(weekday['Departure'].dt.date.unique())
+    wnd = len(weekend['Departure'].dt.date.unique())
+
+    # The average daily number of trips per hour is plotted separately for weekends and for weekdays
     plt.figure()
     plt.subplot(211)
-    weekday.groupby(weekday['Departure'].rename('Hours').dt.hour).size().plot()
+    (weekday.groupby(weekday['Departure'].dt.hour).size() / wd).plot()
+    plt.xlabel('Hour of departure')
     plt.title('Weekdays')
 
     plt.subplot(212)
-    weekend.groupby(weekend['Departure'].rename(
-        'Hours').dt.hour).size().plot(color='r')
+    (weekend.groupby(weekend['Departure'].dt.hour).size() / wnd).plot(color='r')
+    plt.xlabel('Hour of departure')
     plt.title('Weekends')
 
+    plt.tight_layout()
     plt.show()
 
 
@@ -234,11 +241,13 @@ def count_averages(df, wd, wnd):
 def main():
     df = import_data()
     wd, wnd = split_data(df)
+    plot_days(wd, wnd)
+    '''
     predict_destination(df, 'All days')
     predict_destination(wd, 'Weekdays')
     predict_destination(wnd, 'Weekends')
     count_averages(df, wd, wnd)
-    plot_days(wd, wnd)
+    
     M, G = create_network(df)
     WM, WG = create_network(wd)
     WNM, WNG = create_network(wnd)
@@ -254,6 +263,7 @@ def main():
     detect_communities(WNG)
     draw_stations_to_map(G)
     #draw_stations_and_edges_to_map(G) # takes a while
+    '''
 
 if __name__ == '__main__':
     main()
