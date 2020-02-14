@@ -86,6 +86,22 @@ def centrality(graph):
     s = sorted(clos.items(), key=itemgetter(1), reverse=True)
     print("Node with greatest closeness centrality: {}, Closeness centrality value: {}".format(
         s[0][0], s[0][1]))
+    
+    # Plot node degree values
+    degrees = [d for n,d in graph.degree()]
+    y = sorted(degrees)
+    x = range(len(degrees))
+    plt.plot(x, y)
+    plt.ylabel('Node degree')
+    plt.show()
+    
+    # Plot degree centrality values
+    d = sorted(nodes_degrees.values())
+    y = d
+    x = range(len(d))
+    plt.plot(x, y)
+    plt.ylabel('Degree centrality')
+    plt.show()
 
 
 def clustering_coefficient(graph):
@@ -221,7 +237,6 @@ def main():
     predict_destination(df, 'All days')
     predict_destination(wd, 'Weekdays')
     predict_destination(wnd, 'Weekends')
-
     count_averages(df, wd, wnd)
     plot_days(wd, wnd)
     M, G = create_network(df)
