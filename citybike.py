@@ -240,10 +240,10 @@ def count_averages(df, wd, wnd):
 
 def main():
     df = import_data()
-    wd, wnd = split_data(df)
-    plot_days(wd, wnd)
-    '''
+    #wd, wnd = split_data(df)
+    #plot_days(wd, wnd)
     predict_destination(df, 'All days')
+    '''
     predict_destination(wd, 'Weekdays')
     predict_destination(wnd, 'Weekends')
     count_averages(df, wd, wnd)
