@@ -9,6 +9,7 @@ from operator import itemgetter
 import glob
 from communities import detect_communities, draw_stations_to_map, draw_stations_and_edges_to_map, draw_popular_routes_to_map
 from predictions import predict_destination
+from clusters import calculate_degrees
 
 stations = {}
 
@@ -242,7 +243,8 @@ def main():
     df = import_data()
     #wd, wnd = split_data(df)
     #plot_days(wd, wnd)
-    predict_destination(df, 'All days')
+    #predict_destination(df, 'All days')
+    calculate_degrees(df)
     '''
     predict_destination(wd, 'Weekdays')
     predict_destination(wnd, 'Weekends')
