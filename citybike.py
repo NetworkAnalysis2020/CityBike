@@ -18,7 +18,7 @@ def import_data():
     global stations
     # Imports data and concatenates csv:s into one dataframe
     df = pd.concat([pd.read_csv(f)
-                    for f in glob.glob("./data/*.csv")], ignore_index=True)
+                    for f in glob.glob("./data/2019-05.csv")], ignore_index=True)
     # Transforms timestamps into datetime format
     df.Departure = pd.to_datetime(df.Departure)
     df.Return = pd.to_datetime(df.Return)
@@ -243,29 +243,27 @@ def main():
     df = import_data()
     #wd, wnd = split_data(df)
     #plot_days(wd, wnd)
-    #predict_destination(df, 'All days')
-    calculate_degrees(df)
-    '''
-    predict_destination(wd, 'Weekdays')
-    predict_destination(wnd, 'Weekends')
-    count_averages(df, wd, wnd)
-    
+    #predict_destination(df, 'All days, April')
+    #calculate_degrees(df)
+    #predict_destination(wd, 'Weekdays')
+    #predict_destination(wnd, 'Weekends')
+    #count_averages(df, wd, wnd)
     M, G = create_network(df)
-    WM, WG = create_network(wd)
-    WNM, WNG = create_network(wnd)
-    centrality(M)
-    nodes_and_edges(M)
-    clustering_coefficient(G)
-    popular_routes = most_popular_routes(G, 5)
-    draw_popular_routes_to_map(popular_routes)
-    most_popular_routes(WG, 5)
-    most_popular_routes(WNG, 5)
-    detect_communities(G)
-    detect_communities(WG)
-    detect_communities(WNG)
+    #WM, WG = create_network(wd)
+    #WNM, WNG = create_network(wnd)
+    #centrality(M)
+    #nodes_and_edges(M)
+    #clustering_coefficient(G)
+    #popular_routes = most_popular_routes(G, 5)
+    #draw_popular_routes_to_map(popular_routes)
+    #most_popular_routes(WG, 5)
+    #most_popular_routes(WNG, 5)
+    #detect_communities(G)
+    #detect_communities(WG)
+    #detect_communities(WNG)
     draw_stations_to_map(G)
     #draw_stations_and_edges_to_map(G) # takes a while
-    '''
+
 
 if __name__ == '__main__':
     main()
