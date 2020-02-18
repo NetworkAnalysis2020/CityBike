@@ -55,7 +55,15 @@ def calculate_degrees(df):
     station_data.sort(key=sort_by_ratio)
     
     # count 10 stations where ratio of incoming bikes / outgoing bikes is highes
-    print(station_data[:10])
+    print("\nHighest ratios of incoming and outgoing edges")
+    print("----------------------------------------------")
+    for station in station_data[:10]:
+        row = df[df['Departure station id'] == station[0]].iloc[0]
+        print(str(row['Departure station name']) + ", edges_in: " + str(station[1]) + ", edges_out: " + str(station[2]))        
 
     # count 10 stations where ratio of incoming bikes / outgoing bikes is lowest
-    print(station_data[-10:])
+    print("\nLowest ratios of incoming and outgoing edges")
+    print("----------------------------------------------")
+    for station in station_data[-10:]:
+        row = df[df['Departure station id'] == station[0]].iloc[0]
+        print(str(row['Departure station name']) + ", edges_in: " + str(station[1]) + ", edges_out: " + str(station[2]))  
