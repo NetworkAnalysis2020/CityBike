@@ -299,11 +299,13 @@ def main():
     detect_communities(WG)
     detect_communities(WNG)
     draw_stations_to_map(G)
-    draw_stations_and_edges_to_map(G) # takes a while
 
-    # For this method it is recommendable to use data for only one month.
+    # For the following methods it is recommendable to use data for only one month.
     # in import_data -method change imported file from '*.csv' into one of the
     # single csv:s, for example '2019-05.csv'
+
+    #draw_stations_and_edges_to_map(G) # takes a while
+
     #predict_destination(df, 'All days, April')
     #predict_destination(wd, 'Weekdays')
     #predict_destination(wnd, 'Weekends')

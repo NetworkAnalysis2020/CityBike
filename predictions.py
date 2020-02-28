@@ -29,7 +29,7 @@ def predict_destination(df, title):
     y_train, y_test = train_test_split(Y, test_size=0.6, random_state=0)
     
     # The number of trees in RandomForestClassifier is set to 10
-    # classifier = RandomForestClassifier(n_estimators=10)
+    classifier = RandomForestClassifier(n_estimators=10)
     scores = []
     
     for set in (departure_station, distance, duration, hour, all_variables):
@@ -43,7 +43,7 @@ def predict_destination(df, title):
         scores.append(acc)
     
     plot_scores(scores, title)
-    
+
     
 def plot_scores(scores, title):
     '''
