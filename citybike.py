@@ -11,27 +11,33 @@ from communities import detect_communities, draw_stations_to_map, draw_stations_
 from predictions import predict_destination
 from clusters import calculate_degrees
 
-stations = {}
-
-
 def import_data():
-    global stations
+    '''
+    Function for importing data in csv form,
+    changing it into a dataframe and
+    changing timestamps to datetime form.
+    @return: dataframe.
+    '''
     # Imports data and concatenates csv:s into one dataframe
     df = pd.concat([pd.read_csv(f)
-                    for f in glob.glob("./data/2019-05.csv")], ignore_index=True)
+                    for f in glob.glob("./data/*.csv")], ignore_index=True)
     # Transforms timestamps into datetime format
     df.Departure = pd.to_datetime(df.Departure)
     df.Return = pd.to_datetime(df.Return)
     # Drop rows without all values
     df.dropna()
-    #df['Departure station id'] = df['Departure station id'].astype(float)
-    # Creates a dict with the station id:s as keys and station names as values
-    #stations = dict(zip(df['Departure station id'], df['Departure station name']))
 
     return df
 
 
 def split_data(df):
+    '''
+    Function splits the dataframe based on dates,
+    returning one containing only weekdays
+    and one containing only weekends.
+    @param dataframe: network data.
+    @return: two  dataframes
+    '''
     # Dataframe is reversed to chronological order
     df = df.iloc[::-1]
     # Date-column is created and set as index
@@ -46,6 +52,14 @@ def split_data(df):
 
 
 def create_network(df):
+    '''
+    Function transforms dataframe into a directed graph 
+    that accepts multiple parallel edges, and then uses
+    this to create undirected graph with the amount of 
+    parallel edges as edge weights.
+    @param dataframe
+    @return: MultiDiGraph, Graph
+    '''
     # Transforms dataframe into a directed graph that accepts multiple parallel edges
     M = nx.from_pandas_edgelist(df, source='Departure station name', target='Return station name', edge_attr=[
                                 'Covered distance (m)', 'Duration (sec.)'], create_using=nx.MultiDiGraph())
@@ -62,14 +76,20 @@ def create_network(df):
 
 
 def nodes_and_edges(graph):
-    print("Number of Nodes: {}, Number of Edges: {}".format(
-        graph.number_of_nodes(), graph.number_of_edges()))
-
+    '''
+    Function prints the number of nodes and edges in the graph.
+    @param graph
+    '''
     print("Number of Nodes: {}, Number of Edges: {}".format(
         graph.number_of_nodes(), graph.number_of_edges()))
 
 
 def centrality(graph):
+    '''
+    Function calcuates, prints and plots node degree values and degree centrality values 
+    and prints the average degree of the graph.
+    @param graph
+    '''
     # Average degree
     degrees = graph.degree()
     sum_of_edges = sum([pair[1] for pair in degrees])
@@ -107,6 +127,11 @@ def centrality(graph):
 
 
 def clustering_coefficient(graph):
+    '''
+    Function calculates and prints the average clustering coefficient 
+    of the graph.
+    @param graph
+    '''
     C = nx.average_clustering(graph)
     print("Average clustering coefficient: {}".format(C))
 
@@ -131,6 +156,11 @@ def most_popular_routes(graph, n=3):
 
 
 def plot_days(weekday, weekend):
+    '''
+    Function plots the average daily number of trips per hour 
+    separately for weekends and for weekdays
+    @param two dataframes
+    '''
     # Counts the number of unique days in each dataframe 
     wd = len(weekday['Departure'].dt.date.unique())
     wnd = len(weekend['Departure'].dt.date.unique())
@@ -152,6 +182,11 @@ def plot_days(weekday, weekend):
 
 
 def count_averages(df, wd, wnd):
+    '''
+    Function calculates and plots average trip length and duration
+    for all days, weekdays and weekends. 
+    @param three dataframes
+    '''
     avg_time = (df["Duration (sec.)"].mean(axis=0))/60
     avg_distance = df["Covered distance (m)"].mean(axis=0)
 
@@ -241,29 +276,37 @@ def count_averages(df, wd, wnd):
 
 def main():
     df = import_data()
-    #wd, wnd = split_data(df)
-    #plot_days(wd, wnd)
+    wd, wnd = split_data(df)
+    M, G = create_network(df)
+    # Creates network for weekdays
+    WM, WG = create_network(wd)
+    # Creates Network for weekends
+    WNM, WNG = create_network(wnd)
+
+    nodes_and_edges(M)
+    centrality(M)
+    clustering_coefficient(G)
+    popular_routes = most_popular_routes(G, 5)
+    draw_popular_routes_to_map(popular_routes)
+    most_popular_routes(WG, 5)
+    most_popular_routes(WNG, 5)
+    plot_days(wd, wnd)
+    count_averages(df, wd, wnd)
+    
+    calculate_degrees(df)
+
+    detect_communities(G)
+    detect_communities(WG)
+    detect_communities(WNG)
+    draw_stations_to_map(G)
+    draw_stations_and_edges_to_map(G) # takes a while
+
+    # For this method it is recommendable to use data for only one month.
+    # in import_data -method change imported file from '*.csv' into one of the
+    # single csv:s, for example '2019-05.csv'
     #predict_destination(df, 'All days, April')
-    #calculate_degrees(df)
     #predict_destination(wd, 'Weekdays')
     #predict_destination(wnd, 'Weekends')
-    #count_averages(df, wd, wnd)
-    M, G = create_network(df)
-    #WM, WG = create_network(wd)
-    #WNM, WNG = create_network(wnd)
-    #centrality(M)
-    #nodes_and_edges(M)
-    #clustering_coefficient(G)
-    #popular_routes = most_popular_routes(G, 5)
-    #draw_popular_routes_to_map(popular_routes)
-    #most_popular_routes(WG, 5)
-    #most_popular_routes(WNG, 5)
-    #detect_communities(G)
-    #detect_communities(WG)
-    #detect_communities(WNG)
-    draw_stations_to_map(G)
-    #draw_stations_and_edges_to_map(G) # takes a while
-
 
 if __name__ == '__main__':
     main()
